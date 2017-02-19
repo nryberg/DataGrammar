@@ -55,10 +55,10 @@ func main() {
 	}
 	defer db.Close()
 
-	db_name := entries[0].Database
+	databaseName := entries[0].Database
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucket([]byte(db_name))
+		b, err := tx.CreateBucket([]byte(databaseName))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
