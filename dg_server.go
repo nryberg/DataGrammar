@@ -50,6 +50,12 @@ func hello(res http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 	}
 
+  func databaseHandler(w http.ResponseWriter, r *http.Request) {
+
+    t, _ := template.ParseFiles("templates/databases.html")
+    t.Execute(w, p)
+}
+
 	head := `<DOCTYPE html>
 <html>
 <head>
@@ -67,5 +73,6 @@ func hello(res http.ResponseWriter, req *http.Request) {
 }
 func main() {
 	http.HandleFunc("/hello", hello)
+  http.HandleFunc("/databases", databaseHandler)
 	http.ListenAndServe(":9000", nil)
 }
