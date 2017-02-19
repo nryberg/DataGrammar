@@ -1,0 +1,39 @@
+system,schema,table,column,ordinal,type,length,precision,scale
+Shakespeare,public,chapter,chapter,4,integer,,32,0
+Shakespeare,public,chapter,chapterid,2,integer,,32,0
+Shakespeare,public,chapter,description,5,character varying,256,,
+Shakespeare,public,chapter,section,3,integer,,32,0
+Shakespeare,public,chapter,workid,1,character varying,32,,
+Shakespeare,public,character,abbrev,3,character varying,32,,
+Shakespeare,public,character,charid,1,character varying,32,,
+Shakespeare,public,character,charname,2,character varying,64,,
+Shakespeare,public,character,description,4,character varying,2056,,
+Shakespeare,public,character,speechcount,5,integer,,32,0
+Shakespeare,public,character_work,charid,1,character varying,32,,
+Shakespeare,public,character_work,workid,2,character varying,32,,
+Shakespeare,public,paragraph,chapter,10,integer,,32,0
+Shakespeare,public,paragraph,charcount,11,integer,,32,0
+Shakespeare,public,paragraph,charid,4,character varying,32,,
+Shakespeare,public,paragraph,paragraphid,2,integer,,32,0
+Shakespeare,public,paragraph,paragraphnum,3,integer,,32,0
+Shakespeare,public,paragraph,paragraphtype,8,character varying,1,,
+Shakespeare,public,paragraph,phonetictext,6,text,,,
+Shakespeare,public,paragraph,plaintext,5,text,,,
+Shakespeare,public,paragraph,section,9,integer,,32,0
+Shakespeare,public,paragraph,stemtext,7,text,,,
+Shakespeare,public,paragraph,wordcount,12,integer,,32,0
+Shakespeare,public,paragraph,workid,1,character varying,32,,
+Shakespeare,public,wordform,occurences,5,integer,,32,0
+Shakespeare,public,wordform,phonetictext,3,character varying,64,,
+Shakespeare,public,wordform,plaintext,2,character varying,64,,
+Shakespeare,public,wordform,stemtext,4,character varying,64,,
+Shakespeare,public,wordform,wordformid,1,integer,,32,0
+Shakespeare,public,work,genretype,5,character varying,1,,
+Shakespeare,public,work,longtitle,3,character varying,64,,
+Shakespeare,public,work,notes,6,text,,,
+Shakespeare,public,work,source,7,character varying,16,,
+Shakespeare,public,work,title,2,character varying,32,,
+Shakespeare,public,work,totalparagraphs,9,integer,,32,0
+Shakespeare,public,work,totalwords,8,integer,,32,0
+Shakespeare,public,work,workid,1,character varying,32,,
+Shakespeare,public,work,year,4,integer,,32,0
