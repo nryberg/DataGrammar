@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"log"
 	"net/http"
 	"os"
 
+	"github.com/alecthomas/template"
 	"github.com/boltdb/bolt"
 )
 
@@ -39,40 +40,23 @@ func Buckets(path string) ([]string, error) {
 	return bucketList, err
 }
 
-func hello(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set(
-		"Content-Type",
-		"text/html",
-	)
+func databaseHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("templates/databases.html", "templates/header.html", "templates/footer.html")
+	if err != nil {
+		fmt.Println(err)
+	}
+	t.Execute(w, r)
+}
+
+func main() {
+	http.HandleFunc("/databases", databaseHandler)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.ListenAndServe(":9000", nil)
 
 	bucketList, err := Buckets("datagrammar.db")
+	log.Println(len(bucketList))
 	if err != nil {
 		fmt.Println(err)
 	}
 
-  func databaseHandler(w http.ResponseWriter, r *http.Request) {
-
-    t, _ := template.ParseFiles("templates/databases.html")
-    t.Execute(w, p)
-}
-
-	head := `<DOCTYPE html>
-<html>
-<head>
-    <title></title>
-      </head>
-      <body>
-          Hello World!`
-	tail := `
-    </body>
-  </html>`
-	io.WriteString(
-		res,
-		head+bucketList[0]+tail,
-	)
-}
-func main() {
-	http.HandleFunc("/hello", hello)
-  http.HandleFunc("/databases", databaseHandler)
-	http.ListenAndServe(":9000", nil)
 }
