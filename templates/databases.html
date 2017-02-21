@@ -2,4 +2,8 @@
 
 <h1>Databases</h1>
 
+{{range .Buckets}}
+  <h1> Bucket : {{.}} </h1>
+{{end}}
+
 {{ template "footer.html" . }}
