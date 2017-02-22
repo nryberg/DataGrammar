@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,22 +15,53 @@ const dbFilePath string = "datagrammar.db"
 
 var boltDBinstance bolt.DB
 var majorKeys Branch
+var system System
 
 // BucketList contains a list of the buckets
 type BucketList struct {
 	Buckets []string
 }
 
-// SystemList contains a list of the systems and a count of tables
-type SystemList struct {
-	Systems    []string
-	TableCount int
+// System contains a list of the systems and a count of tables
+type System struct {
+	name   string
+	tables []Table
+}
+
+// Table is the tables in the systems
+type Table struct {
+	name    string
+	columns []Column
+}
+
+// Column is the base type here
+type Column struct {
+	name      string
+	Ordinal   int
+	Type      string
+	Length    int
+	Precision int
+	Scale     int
 }
 
 // Branch is a general type for a tree form
 type Branch struct {
 	Name  string
 	Items []string
+}
+
+// Entry is the single database entry
+type Entry struct { // Our example struct, you can use "-" to ignore a field
+	Database  string `csv:"database"`
+	System    string `csv:"system"`
+	Schema    string `csv:"schema"`
+	Table     string `csv:"table"`
+	Column    string `csv:"column"`
+	Ordinal   int    `csv:"Ordinal"`
+	Type      string `csv:"Type"`
+	Length    int    `csv:"Length"`
+	Precision int    `csv:"Precision"`
+	Scale     int    `csv:"Scale"`
 }
 
 func openDB(path string) error {
@@ -72,16 +104,33 @@ func Buckets() (Branch, error) {
 
 //MajorKeys will pull the systems in a bucket
 func loadMajorKeys(bucket string) error {
+	var entry Entry
 	majorKeys.Name = bucket
-	err := boltDBinstance.View(func(tx *bolt.Tx) error {
+	boltDBinstance, err := bolt.Open(dbFilePath, 0600, nil)
+	if err != nil {
+		fmt.Println(err, "open Bolt DB")
+	}
+
+	defer boltDBinstance.Close()
+	err = boltDBinstance.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			fmt.Printf("key=%s, value=%s\n", k, v)
 			majorKeys.Items = append(majorKeys.Items, string(k))
+
+			jsonErr := json.Unmarshal(v, &entry)
+			if jsonErr != nil {
+				fmt.Println(err, "unMarshalling")
+			}
+
 		}
 		return nil
 	})
+
+	if err != nil {
+		fmt.Println(err, "loadMajorKeys")
+	}
+
 	return err
 }
 
