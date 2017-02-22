@@ -1,0 +1,12 @@
+{{ template "header.html" . }}
+
+<h1>Single Database</h1>
+<h2>{{.Name}}</h2>
+
+{{range .Items}}
+  <div>
+    <a href="/db/{{.}}">{{.}}</a>
+  </div>
+{{end}}
+
+{{ template "footer.html" . }}
