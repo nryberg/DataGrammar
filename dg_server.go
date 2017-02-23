@@ -52,16 +52,16 @@ type Branch struct {
 
 // Entry is the single database entry
 type Entry struct { // Our example struct, you can use "-" to ignore a field
-	Database  string `csv:"database"`
-	System    string `csv:"system"`
-	Schema    string `csv:"schema"`
-	Table     string `csv:"table"`
-	Column    string `csv:"column"`
-	Ordinal   int    `csv:"Ordinal"`
-	Type      string `csv:"Type"`
-	Length    int    `csv:"Length"`
-	Precision int    `csv:"Precision"`
-	Scale     int    `csv:"Scale"`
+	Database  string
+	System    string
+	Schema    string
+	Table     string
+	Column    string
+	Ordinal   int
+	Type      string
+	Length    int
+	Precision int
+	Scale     int
 }
 
 func openDB(path string) error {
