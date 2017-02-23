@@ -14,24 +14,46 @@ import (
 const dbFilePath string = "datagrammar.db"
 
 var boltDBinstance bolt.DB
-var majorKeys Branch
-var system System
 
 // BucketList contains a list of the buckets
 type BucketList struct {
 	Buckets []string
 }
 
-// System contains a list of the systems and a count of tables
-type System struct {
+// Database contains a list of schemas
+type Database struct {
 	name   string
-	tables []Table
+	tables map[string]Table
+	server string
+}
+
+// NewDatabase initializes the Database struct with a map
+func NewDatabase(name string) *Database {
+	db := Database{
+		tables: make(map[string]Table),
+		name:   name,
+		server: "",
+	}
+
+	return &db
 }
 
 // Table is the tables in the systems
 type Table struct {
 	name    string
-	columns []Column
+	columns map[string]Column
+	schema  string
+}
+
+// NewTable initializes the Database struct with a map
+func NewTable() *Table {
+	tb := Table{
+		columns: make(map[string]Column),
+		name:    "",
+		schema:  "",
+	}
+
+	return &tb
 }
 
 // Column is the base type here
@@ -42,12 +64,6 @@ type Column struct {
 	Length    int
 	Precision int
 	Scale     int
-}
-
-// Branch is a general type for a tree form
-type Branch struct {
-	Name  string
-	Items []string
 }
 
 // Entry is the single database entry
@@ -79,9 +95,9 @@ func openDB(path string) error {
 	return err
 }
 
-// Buckets prints a list of all buckets.
-func Buckets() (Branch, error) {
-	var bucketList Branch
+// Buckets loads a list of all buckets.
+func Buckets() (BucketList, error) {
+	var bucketList BucketList
 	boltDBinstance, err := bolt.Open(dbFilePath, 0600, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -94,7 +110,7 @@ func Buckets() (Branch, error) {
 	}
 	err = boltDBinstance.View(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, _ *bolt.Bucket) error {
-			bucketList.Items = append(bucketList.Items, string(name))
+			bucketList.Buckets = append(bucketList.Buckets, string(name))
 			return nil
 		})
 	})
@@ -102,10 +118,17 @@ func Buckets() (Branch, error) {
 	return bucketList, err
 }
 
-//MajorKeys will pull the systems in a bucket
-func loadMajorKeys(bucket string) error {
+// buildDBtree converts majorKeys to a tree of entries
+func buildDBtree() error {
+	var err error
+	return err
+}
+
+//loadEntries will pull the tables in a bucket
+func loadEntries(bucket string) (Database, error) {
 	var entry Entry
-	majorKeys.Name = bucket
+	database := NewDatabase(bucket)
+
 	boltDBinstance, err := bolt.Open(dbFilePath, 0600, nil)
 	if err != nil {
 		fmt.Println(err, "open Bolt DB")
@@ -116,12 +139,17 @@ func loadMajorKeys(bucket string) error {
 		bucket := tx.Bucket([]byte(bucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			majorKeys.Items = append(majorKeys.Items, string(k))
+			//majorKeys.Items = append(majorKeys.Items, string(k))
 
 			jsonErr := json.Unmarshal(v, &entry)
 			if jsonErr != nil {
 				fmt.Println(err, "unMarshalling")
 			}
+
+			// Load em up cowboy
+
+			table := database.tables[entry.Table]
+			log.Println(table.name)
 
 		}
 		return nil
@@ -131,7 +159,7 @@ func loadMajorKeys(bucket string) error {
 		fmt.Println(err, "loadMajorKeys")
 	}
 
-	return err
+	return *database, err
 }
 
 // Templates setup
@@ -156,13 +184,13 @@ func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
 
 	dbName := r.URL.Path[len("/db/"):]
-	err := loadMajorKeys(dbName)
+	database, err := loadEntries(dbName)
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = templates.Execute(w, majorKeys)
+	err = templates.Execute(w, database)
 	if err != nil {
 		fmt.Println(err)
 	}
