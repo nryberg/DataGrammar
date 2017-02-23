@@ -3,7 +3,7 @@
 <h1>Single Database</h1>
 <h2>{{.Name}}</h2>
 
-{{range .Items}}
+{{range .tables.keys}}
   <div>
     <a href="/db/{{.}}">{{.}}</a>
   </div>

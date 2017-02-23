@@ -22,17 +22,17 @@ type BucketList struct {
 
 // Database contains a list of schemas
 type Database struct {
-	name   string
-	tables map[string]Table
-	server string
+	Name   string
+	Tables map[string]Table
+	Server string
 }
 
 // NewDatabase initializes the Database struct with a map
 func NewDatabase(name string) *Database {
 	db := Database{
-		tables: make(map[string]Table),
-		name:   name,
-		server: "",
+		Tables: make(map[string]Table),
+		Name:   name,
+		Server: "",
 	}
 
 	return &db
@@ -40,17 +40,17 @@ func NewDatabase(name string) *Database {
 
 // Table is the tables in the systems
 type Table struct {
-	name    string
-	columns map[string]Column
-	schema  string
+	Name    string
+	Columns map[string]Column
+	Schema  string
 }
 
 // NewTable initializes the Database struct with a map
-func NewTable() *Table {
+func NewTable(name, schema string) *Table {
 	tb := Table{
-		columns: make(map[string]Column),
-		name:    "",
-		schema:  "",
+		Columns: make(map[string]Column),
+		Name:    name,
+		Schema:  schema,
 	}
 
 	return &tb
@@ -148,8 +148,8 @@ func loadEntries(bucket string) (Database, error) {
 
 			// Load em up cowboy
 
-			table := database.tables[entry.Table]
-			log.Println(table.name)
+			table := database.Tables[entry.Table]
+			log.Println(table.Name)
 
 		}
 		return nil
