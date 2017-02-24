@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 
 	"github.com/alecthomas/template"
 	"github.com/boltdb/bolt"
@@ -22,9 +23,10 @@ type BucketList struct {
 
 // Database contains a list of schemas
 type Database struct {
-	Name   string
-	Tables map[string]Table
-	Server string
+	Name       string
+	Tables     map[string]Table
+	Server     string
+	TableNames []string
 }
 
 // NewDatabase initializes the Database struct with a map
@@ -38,6 +40,12 @@ func NewDatabase(name string) *Database {
 	return &db
 }
 
+// AddorGetTable adds a table if it's not there, otherwise returns it
+func AddorGetTable(name string, database *Database) *Table {
+	var table Table
+	return &table
+}
+
 // Table is the tables in the systems
 type Table struct {
 	Name    string
@@ -46,14 +54,14 @@ type Table struct {
 }
 
 // NewTable initializes the Database struct with a map
-func NewTable(name, schema string) *Table {
+func NewTable(name, schema string) Table {
 	tb := Table{
 		Columns: make(map[string]Column),
 		Name:    name,
 		Schema:  schema,
 	}
 
-	return &tb
+	return tb
 }
 
 // Column is the base type here
@@ -135,28 +143,43 @@ func loadEntries(bucket string) (Database, error) {
 	}
 
 	defer boltDBinstance.Close()
+
 	err = boltDBinstance.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			//majorKeys.Items = append(majorKeys.Items, string(k))
 
+			// Load the entry from binary
 			jsonErr := json.Unmarshal(v, &entry)
 			if jsonErr != nil {
 				fmt.Println(err, "unMarshalling")
 			}
-
 			// Load em up cowboy
+			table, exists := database.Tables[entry.Table]
 
-			table := database.Tables[entry.Table]
-			log.Println(table.Name)
+			var column Column
+
+			column.name = entry.Column
+			column.Type = entry.Type
+			column.Ordinal = entry.Ordinal
+			column.Length = entry.Length
+			column.Precision = entry.Precision
+			column.Scale = entry.Scale
+
+			if !exists {
+				table = NewTable(entry.Table, entry.Schema)
+
+			}
+			table.Columns[column.name] = column
+
+			database.Tables[entry.Table] = table
 
 		}
 		return nil
 	})
 
 	if err != nil {
-		fmt.Println(err, "loadMajorKeys")
+		fmt.Println(err, "loadEntries")
 	}
 
 	return *database, err
@@ -186,6 +209,12 @@ func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 	dbName := r.URL.Path[len("/db/"):]
 	database, err := loadEntries(dbName)
 
+	for k := range database.Tables {
+		database.TableNames = append(database.TableNames, k)
+		log.Println(k)
+	}
+
+	sort.Strings(database.TableNames)
 	if err != nil {
 		fmt.Println(err)
 	}

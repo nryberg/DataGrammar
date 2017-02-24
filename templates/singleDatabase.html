@@ -2,10 +2,11 @@
 
 <h1>Single Database</h1>
 <h2>{{.Name}}</h2>
+<p> {{len .Tables}}</p>
 
-{{range .tables.keys}}
+{{range .TableNames}}
   <div>
-    <a href="/db/{{.}}">{{.}}</a>
+    <a href="/tb/{{.}}">{{.}}</a>
   </div>
 {{end}}
 
