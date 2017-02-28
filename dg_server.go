@@ -229,6 +229,7 @@ func main() {
 
 	http.HandleFunc("/", listDBhandler)
 	http.HandleFunc("/db/", singleDBhandler)
+	http.HandleFunc("/tb/", singleTBhandler{})
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.ListenAndServe(":9000", nil)
+	http.ListenAndServe(":3001", nil)
 }
