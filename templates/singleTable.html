@@ -1,0 +1,13 @@
+{{ template "header.html" . }}
+
+<h1>Single Table</h1>
+<h2>{{.Name}}</h2>
+<p> {{len .Columns}}</p>
+
+{{range .ColumnNames}}
+  <div>
+    <a href="/tb/{{.}}">{{.}}</a>
+  </div>
+{{end}}
+
+{{ template "footer.html" . }}

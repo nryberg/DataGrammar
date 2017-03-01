@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"sort"
@@ -15,6 +14,7 @@ import (
 const dbFilePath string = "datagrammar.db"
 
 var boltDBinstance bolt.DB
+var database Database
 
 // BucketList contains a list of the buckets
 type BucketList struct {
@@ -48,9 +48,10 @@ func AddorGetTable(name string, database *Database) *Table {
 
 // Table is the tables in the systems
 type Table struct {
-	Name    string
-	Columns map[string]Column
-	Schema  string
+	Name        string
+	Columns     map[string]Column
+	Schema      string
+	ColumnNames []string
 }
 
 // NewTable initializes the Database struct with a map
@@ -188,7 +189,6 @@ func loadEntries(bucket string) (Database, error) {
 // Templates setup
 
 func listDBhandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("In listDBhandler")
 	bucketList, err := Buckets()
 	if err != nil {
 		fmt.Println(err, "listDBHandler")
@@ -202,34 +202,49 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func singleDBhandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("In single DB Handler")
-	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
+func singleTBhandler(w http.ResponseWriter, r *http.Request) {
+	templates := template.Must(template.ParseFiles("templates/singleTable.html", "templates/header.html", "templates/footer.html"))
 
+	tableName := r.URL.Path[len("/tb/"):]
+	table := database.Tables[tableName]
+
+	var columnName []string
+
+	for k := range table.Columns {
+		columnName = append(columnName, k)
+
+	}
+
+	sort.Strings(columnName)
+	table.ColumnNames = columnName
+
+	err := templates.Execute(w, table)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+func singleDBhandler(w http.ResponseWriter, r *http.Request) {
+	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
 	dbName := r.URL.Path[len("/db/"):]
-	database, err := loadEntries(dbName)
+	database, _ = loadEntries(dbName)
 
 	for k := range database.Tables {
 		database.TableNames = append(database.TableNames, k)
-		log.Println(k)
 	}
 
 	sort.Strings(database.TableNames)
-	if err != nil {
-		fmt.Println(err)
-	}
 
-	err = templates.Execute(w, database)
-	if err != nil {
-		fmt.Println(err)
-	}
+	templates.Execute(w, database)
+
 }
 
 func main() {
 
 	http.HandleFunc("/", listDBhandler)
 	http.HandleFunc("/db/", singleDBhandler)
-	http.HandleFunc("/tb/", singleTBhandler{})
+	http.HandleFunc("/tb/", singleTBhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.ListenAndServe(":3001", nil)
 }
