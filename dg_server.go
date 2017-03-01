@@ -48,18 +48,20 @@ func AddorGetTable(name string, database *Database) *Table {
 
 // Table is the tables in the systems
 type Table struct {
-	Name        string
-	Columns     map[string]Column
-	Schema      string
-	ColumnNames []string
+	Name         string
+	Columns      map[string]Column
+	Schema       string
+	ColumnNames  []string
+	DatabaseName string
 }
 
 // NewTable initializes the Database struct with a map
-func NewTable(name, schema string) Table {
+func NewTable(name, schema string, dbName string) Table {
 	tb := Table{
-		Columns: make(map[string]Column),
-		Name:    name,
-		Schema:  schema,
+		Columns:      make(map[string]Column),
+		Name:         name,
+		Schema:       schema,
+		DatabaseName: dbName,
 	}
 
 	return tb
@@ -168,7 +170,7 @@ func loadEntries(bucket string) (Database, error) {
 			column.Scale = entry.Scale
 
 			if !exists {
-				table = NewTable(entry.Table, entry.Schema)
+				table = NewTable(entry.Table, entry.Schema, database.Name)
 
 			}
 			table.Columns[column.name] = column
