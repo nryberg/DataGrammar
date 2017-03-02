@@ -69,12 +69,15 @@ func NewTable(name, schema string, dbName string) Table {
 
 // Column is the base type here
 type Column struct {
-	name      string
-	Ordinal   int
-	Type      string
-	Length    int
-	Precision int
-	Scale     int
+	ID           uint64
+	Name         string
+	Ordinal      int
+	Type         string
+	Length       int
+	Precision    int
+	Scale        int
+	TableName    string
+	DatabaseName string
 }
 
 // Entry is the single database entry
@@ -89,6 +92,7 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 	Length    int
 	Precision int
 	Scale     int
+	ID        uint64
 }
 
 func openDB(path string) error {
@@ -162,18 +166,22 @@ func loadEntries(bucket string) (Database, error) {
 
 			var column Column
 
-			column.name = entry.Column
+			column.Name = entry.Column
 			column.Type = entry.Type
 			column.Ordinal = entry.Ordinal
 			column.Length = entry.Length
 			column.Precision = entry.Precision
 			column.Scale = entry.Scale
+			column.TableName = table.Name
+			column.DatabaseName = database.Name
+			column.ID = entry.ID
 
+			fmt.Println(column.ID)
 			if !exists {
 				table = NewTable(entry.Table, entry.Schema, database.Name)
 
 			}
-			table.Columns[column.name] = column
+			table.Columns[column.Name] = column
 
 			database.Tables[entry.Table] = table
 
@@ -227,6 +235,18 @@ func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func singleColhandler(w http.ResponseWriter, r *http.Request) {
+	templates := template.Must(template.ParseFiles("templates/singleColumn.html", "templates/header.html", "templates/footer.html"))
+
+	columnName := r.URL.Path[len("/cl/"):]
+	column := database.Tables["fred"].Columns[columnName]
+
+	err := templates.Execute(w, column)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
 func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
 	dbName := r.URL.Path[len("/db/"):]
@@ -245,6 +265,8 @@ func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	http.HandleFunc("/", listDBhandler)
+
+	http.HandleFunc("/cl/", singleColhandler)
 	http.HandleFunc("/db/", singleDBhandler)
 	http.HandleFunc("/tb/", singleTBhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))

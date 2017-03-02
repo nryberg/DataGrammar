@@ -22,6 +22,7 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 	Length    int    `csv:"Length"`
 	Precision int    `csv:"Precision"`
 	Scale     int    `csv:"Scale"`
+	ID        uint64
 }
 
 // UID returns a unique identifier for the entry
@@ -43,9 +44,6 @@ func main() {
 	if err = gocsv.UnmarshalFile(definitionFile, &entries); err != nil { // Load entries from file
 		panic(err)
 	}
-	for _, entry := range entries {
-		fmt.Println("Hello", entry.UID())
-	}
 
 	// Send Entries to Bolt DB
 
@@ -54,21 +52,34 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
+	log.Println("ready to load")
 	databaseName := entries[0].Database
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucket([]byte(databaseName))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
+
+		tx.DeleteBucket([]byte(databaseName))
+
+		log.Println("Opening the bucket")
+		b, err := tx.CreateBucket([]byte(databaseName))
+		if err != nil {
+			log.Println(err)
+			return fmt.Errorf("create bucket: %s", err)
+		}
 		for _, entry := range entries {
+			entry.ID, _ = b.NextSequence()
+			log.Println(entry.ID)
 			encoded, err := json.Marshal(entry)
 			if err != nil {
 				return err
 			}
 
 			err = b.Put([]byte(entry.UID()), encoded)
+			if err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
 		}
 
 		return nil

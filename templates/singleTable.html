@@ -5,10 +5,9 @@
 <p> {{len .Columns}}</p>
 
 <p> <a href="/db/{{.DatabaseName}}">{{.DatabaseName}}</a></p>
-
-{{range .ColumnNames}}
+{{range .Columns}}
   <div>
-    <a href="/tb/{{.}}">{{.}}</a>
+    <a href="/cl/{{.ID}}">{{.Name}}</a>
   </div>
 {{end}}
 
