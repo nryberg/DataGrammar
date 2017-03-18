@@ -32,3 +32,17 @@ Columns have a bunch of detail attached to them - that's where the fun stuff rea
 Search has to cover everything.
 
 That was a lot of work getting the pieces together.  For now, databases and tables are functional.  Next to do the column page. and then think about the overall theme.  Then search again.
+
+## 03/17/2017
+Basic thoughts around the structure of the system.  
+
+Combines existing structure with living knowledge and actual behavior mapping how your company stores, think about and uses data to succeed.  It is the best solution to the "sandy-steve-sally" problem.
+
+### Sandy
+Has been here since the dawn of time and is about to retire, taking decades of hard won contextual knowledge out with her.  When anyone had a question about how or why a particular table was used, she was the go to.  
+
+### Steve
+Brand new employee, lots of energy, very little business knowledge.  Was hired for SQL skills but has _no_ idea where the tables are, how they fit together, and what his coworkers do with the data.
+
+### Sally
+In role for a couple of years now.  Quite often the trainer for the new person, but occasionally runs into edge cases where Sandy would really help.  She's starting to gather a body of knowledge and has no good way to give back to the community.

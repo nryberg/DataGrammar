@@ -1,0 +1,9 @@
+{{ template "header.html" . }}
+
+<h1>Single Column</h1>
+<h2>{{.Name}}</h2>
+
+<p> <a href="/db/{{.DatabaseName}}">{{.DatabaseName}}</a></p>
+<p> <a href="/db/{{.TableName}}">{{.DatabaseName}}</a></p>
+
+{{ template "footer.html" . }}

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sort"
@@ -49,7 +50,7 @@ func AddorGetTable(name string, database *Database) *Table {
 // Table is the tables in the systems
 type Table struct {
 	Name         string
-	Columns      map[string]Column
+	Columns      map[uint64]Column
 	Schema       string
 	ColumnNames  []string
 	DatabaseName string
@@ -58,7 +59,7 @@ type Table struct {
 // NewTable initializes the Database struct with a map
 func NewTable(name, schema string, dbName string) Table {
 	tb := Table{
-		Columns:      make(map[string]Column),
+		Columns:      make(map[uint64]Column),
 		Name:         name,
 		Schema:       schema,
 		DatabaseName: dbName,
@@ -181,7 +182,7 @@ func loadEntries(bucket string) (Database, error) {
 				table = NewTable(entry.Table, entry.Schema, database.Name)
 
 			}
-			table.Columns[column.Name] = column
+			table.Columns[column.ID] = column
 
 			database.Tables[entry.Table] = table
 
@@ -221,7 +222,8 @@ func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 	var columnName []string
 
 	for k := range table.Columns {
-		columnName = append(columnName, k)
+		thisName := table.Columns[k].Name
+		columnName = append(columnName, thisName)
 
 	}
 
@@ -239,6 +241,7 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleColumn.html", "templates/header.html", "templates/footer.html"))
 
 	columnName := r.URL.Path[len("/cl/"):]
+	log.Println(columnName)
 	column := database.Tables["fred"].Columns[columnName]
 
 	err := templates.Execute(w, column)
