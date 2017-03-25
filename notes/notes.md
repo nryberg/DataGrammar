@@ -46,3 +46,20 @@ Brand new employee, lots of energy, very little business knowledge.  Was hired f
 
 ### Sally
 In role for a couple of years now.  Quite often the trainer for the new person, but occasionally runs into edge cases where Sandy would really help.  She's starting to gather a body of knowledge and has no good way to give back to the community.
+
+## 03/27/2017
+
+Every interaction at work with a metadata system leaves me wishing for this very system.
+
+Major Roots:
+
+* DB - Databases
+* table - Tables
+* Column - Columns
+* Query - Queries - existing queries
+* User - Users
+* Search - Search string
+* Note - commentary on the above.  
+
+
+Incorporate simple record keying system.  Five characters = a..z, A..Z, 0-9 gives 62 characters which is nearly a billion combinations.  I think we'll be okay.  
