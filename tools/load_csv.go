@@ -4,11 +4,71 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gocarina/gocsv"
 )
+
+type Database struct {
+	Name       string
+	Tables     map[string]Table
+	Server     string
+	TableNames []string
+}
+
+// NewDatabase initializes the Database struct with a map
+func NewDatabase(name string) *Database {
+	db := Database{
+		Tables: make(map[string]Table),
+		Name:   name,
+		Server: "",
+	}
+
+	return &db
+}
+
+// AddorGetTable adds a table if it's not there, otherwise returns it
+func AddorGetTable(name string, database *Database) *Table {
+	var table Table
+	return &table
+}
+
+// Table is the tables in the systems
+type Table struct {
+	Name         string
+	Columns      map[uint64]Column
+	Schema       string
+	ColumnNames  []string
+	DatabaseName string
+}
+
+// NewTable initializes the Database struct with a map
+func NewTable(name, schema string, dbName string) Table {
+	tb := Table{
+		Columns:      make(map[uint64]Column),
+		Name:         name,
+		Schema:       schema,
+		DatabaseName: dbName,
+	}
+
+	return tb
+}
+
+// Column is the base type here
+type Column struct {
+	ID           uint64
+	Name         string
+	Ordinal      int
+	Type         string
+	Length       int
+	Precision    int
+	Scale        int
+	TableName    string
+	DatabaseName string
+}
 
 // Entry is a single line of a database/table definition
 type Entry struct { // Our example struct, you can use "-" to ignore a field
@@ -28,6 +88,17 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 // UID returns a unique identifier for the entry
 func (e *Entry) UID() string {
 	return e.System + "|" + e.Schema + "|" + e.Table + "|" + e.Column
+}
+
+func fourLetterGenerator() string {
+	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	rand.Seed(time.Now().UnixNano())
+	char1 := rand.Intn(52)
+	char2 := rand.Intn(52)
+	char3 := rand.Intn(52)
+	char4 := rand.Intn(52)
+	value := string(chars[char1]) + string(chars[char2]) + string(chars[char3]) + string(chars[char4])
+	return value
 }
 
 func main() {
@@ -63,11 +134,15 @@ func main() {
 		tx.DeleteBucket([]byte(databaseName))
 
 		log.Println("Opening the bucket")
+
+		bucketDB, err := tx.CreateBucketIfNotExists([]byte("DBS"))
+
 		b, err := tx.CreateBucket([]byte(databaseName))
 		if err != nil {
 			log.Println(err)
 			return fmt.Errorf("create bucket: %s", err)
 		}
+
 		for _, entry := range entries {
 			entry.ID, _ = b.NextSequence()
 			log.Println(entry.ID)

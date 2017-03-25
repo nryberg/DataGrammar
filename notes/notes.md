@@ -51,7 +51,7 @@ In role for a couple of years now.  Quite often the trainer for the new person, 
 
 Every interaction at work with a metadata system leaves me wishing for this very system.
 
-Major Roots:
+Major Buckets:
 
 * DB - Databases
 * table - Tables
@@ -61,5 +61,4 @@ Major Roots:
 * Search - Search string
 * Note - commentary on the above.  
 
-
-Incorporate simple record keying system.  Five characters = a..z, A..Z, 0-9 gives 62 characters which is nearly a billion combinations.  I think we'll be okay.  
+Simple keying system based on the buckets.  Use BoltDB incrementing index to id them automatically.   Don't need to mess around with anything else.
