@@ -97,8 +97,20 @@ func fourLetterGenerator() string {
 	char2 := rand.Intn(52)
 	char3 := rand.Intn(52)
 	char4 := rand.Intn(52)
+
 	value := string(chars[char1]) + string(chars[char2]) + string(chars[char3]) + string(chars[char4])
 	return value
+}
+
+func findDBSKey(name string, bucketDB *bolt.Bucket) string {
+	c := bucketDB.Cursor()
+
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		if string(v) == name {
+			return string(k)
+		}
+	}
+	return ""
 }
 
 func main() {
@@ -136,7 +148,13 @@ func main() {
 		log.Println("Opening the bucket")
 
 		bucketDB, err := tx.CreateBucketIfNotExists([]byte("DBS"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		dbKey := findDBSKey(databaseName, bucketDB)
+		if dbKey == "" {
 
+		}
 		b, err := tx.CreateBucket([]byte(databaseName))
 		if err != nil {
 			log.Println(err)
