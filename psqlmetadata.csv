@@ -1,39 +1,39 @@
-database,system,schema,table,column,ordinal,type,length,precision,scale
-shakespeare,opensourceshakespeare,public,chapter,chapter,4,integer,,32,0
-shakespeare,opensourceshakespeare,public,chapter,chapterid,2,integer,,32,0
-shakespeare,opensourceshakespeare,public,chapter,description,5,character varying,256,,
-shakespeare,opensourceshakespeare,public,chapter,section,3,integer,,32,0
-shakespeare,opensourceshakespeare,public,chapter,workid,1,character varying,32,,
-shakespeare,opensourceshakespeare,public,character,abbrev,3,character varying,32,,
-shakespeare,opensourceshakespeare,public,character,charid,1,character varying,32,,
-shakespeare,opensourceshakespeare,public,character,charname,2,character varying,64,,
-shakespeare,opensourceshakespeare,public,character,description,4,character varying,2056,,
-shakespeare,opensourceshakespeare,public,character,speechcount,5,integer,,32,0
-shakespeare,opensourceshakespeare,public,character_work,charid,1,character varying,32,,
-shakespeare,opensourceshakespeare,public,character_work,workid,2,character varying,32,,
-shakespeare,opensourceshakespeare,public,paragraph,chapter,10,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,charcount,11,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,charid,4,character varying,32,,
-shakespeare,opensourceshakespeare,public,paragraph,paragraphid,2,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,paragraphnum,3,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,paragraphtype,8,character varying,1,,
-shakespeare,opensourceshakespeare,public,paragraph,phonetictext,6,text,,,
-shakespeare,opensourceshakespeare,public,paragraph,plaintext,5,text,,,
-shakespeare,opensourceshakespeare,public,paragraph,section,9,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,stemtext,7,text,,,
-shakespeare,opensourceshakespeare,public,paragraph,wordcount,12,integer,,32,0
-shakespeare,opensourceshakespeare,public,paragraph,workid,1,character varying,32,,
-shakespeare,opensourceshakespeare,public,wordform,occurences,5,integer,,32,0
-shakespeare,opensourceshakespeare,public,wordform,phonetictext,3,character varying,64,,
-shakespeare,opensourceshakespeare,public,wordform,plaintext,2,character varying,64,,
-shakespeare,opensourceshakespeare,public,wordform,stemtext,4,character varying,64,,
-shakespeare,opensourceshakespeare,public,wordform,wordformid,1,integer,,32,0
-shakespeare,opensourceshakespeare,public,work,genretype,5,character varying,1,,
-shakespeare,opensourceshakespeare,public,work,longtitle,3,character varying,64,,
-shakespeare,opensourceshakespeare,public,work,notes,6,text,,,
-shakespeare,opensourceshakespeare,public,work,source,7,character varying,16,,
-shakespeare,opensourceshakespeare,public,work,title,2,character varying,32,,
-shakespeare,opensourceshakespeare,public,work,totalparagraphs,9,integer,,32,0
-shakespeare,opensourceshakespeare,public,work,totalwords,8,integer,,32,0
-shakespeare,opensourceshakespeare,public,work,workid,1,character varying,32,,
-shakespeare,opensourceshakespeare,public,work,year,4,integer,,32,0
+server,database,type,system,schema,table,column,ordinal,type,length,precision,scale
+localhost,shakespeare,Postgresql,System Name,public,chapter,chapter,4,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,chapter,chapterid,2,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,chapter,description,5,character varying,256,,
+localhost,shakespeare,Postgresql,System Name,public,chapter,section,3,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,chapter,workid,1,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,character,abbrev,3,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,character,charid,1,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,character,charname,2,character varying,64,,
+localhost,shakespeare,Postgresql,System Name,public,character,description,4,character varying,2056,,
+localhost,shakespeare,Postgresql,System Name,public,character,speechcount,5,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,character_work,charid,1,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,character_work,workid,2,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,chapter,10,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,charcount,11,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,charid,4,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,paragraphid,2,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,paragraphnum,3,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,paragraphtype,8,character varying,1,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,phonetictext,6,text,,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,plaintext,5,text,,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,section,9,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,stemtext,7,text,,,
+localhost,shakespeare,Postgresql,System Name,public,paragraph,wordcount,12,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,paragraph,workid,1,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,wordform,occurences,5,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,wordform,phonetictext,3,character varying,64,,
+localhost,shakespeare,Postgresql,System Name,public,wordform,plaintext,2,character varying,64,,
+localhost,shakespeare,Postgresql,System Name,public,wordform,stemtext,4,character varying,64,,
+localhost,shakespeare,Postgresql,System Name,public,wordform,wordformid,1,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,work,genretype,5,character varying,1,,
+localhost,shakespeare,Postgresql,System Name,public,work,longtitle,3,character varying,64,,
+localhost,shakespeare,Postgresql,System Name,public,work,notes,6,text,,,
+localhost,shakespeare,Postgresql,System Name,public,work,source,7,character varying,16,,
+localhost,shakespeare,Postgresql,System Name,public,work,title,2,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,work,totalparagraphs,9,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,work,totalwords,8,integer,,32,0
+localhost,shakespeare,Postgresql,System Name,public,work,workid,1,character varying,32,,
+localhost,shakespeare,Postgresql,System Name,public,work,year,4,integer,,32,0

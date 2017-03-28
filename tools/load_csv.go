@@ -12,10 +12,12 @@ import (
 	"github.com/gocarina/gocsv"
 )
 
+// Database is the basis of all the systems
 type Database struct {
 	Name       string
 	Tables     map[string]Table
 	Server     string
+	Type       string
 	TableNames []string
 }
 
@@ -113,10 +115,25 @@ func findDBSKey(name string, bucketDB *bolt.Bucket) string {
 	return ""
 }
 
+func newDBSKey(name string, bucketDB *bolt.Bucket) string {
+	newKey := fourLetterGenerator()
+
+	matched := bucketDB.Get([]byte(newKey))
+
+	keyExists := (matched != nil)
+	for keyExists {
+		newKey = fourLetterGenerator()
+		matched = bucketDB.Get([]byte(newKey))
+		keyExists = (matched != nil)
+	}
+
+	return newKey
+}
+
 func main() {
 
 	// Load Definition file from csv
-	definitionFile, err := os.OpenFile("psqlmetadata.csv", os.O_RDWR|os.O_CREATE, os.ModePerm)
+	definitionFile, err := os.OpenFile("../psqlmetadata.csv", os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -151,10 +168,14 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
+
+		log.Println("Datbase name is ", databaseName)
 		dbKey := findDBSKey(databaseName, bucketDB)
 		if dbKey == "" {
-
+			dbKey = newDBSKey(databaseName, bucketDB)
 		}
+
+		log.Println("DB Key is ", dbKey)
 		b, err := tx.CreateBucket([]byte(databaseName))
 		if err != nil {
 			log.Println(err)
