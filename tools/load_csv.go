@@ -92,6 +92,8 @@ func (e *Entry) UID() string {
 	return e.System + "|" + e.Schema + "|" + e.Table + "|" + e.Column
 }
 
+// fourLetterGenerator creates a randomly string of four characters, upper and lower
+// case
 func fourLetterGenerator() string {
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	rand.Seed(time.Now().UnixNano())
