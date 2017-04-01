@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -11,6 +10,10 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gocarina/gocsv"
 )
+
+var name2key *bolt.Bucket
+var key2name *bolt.Bucket
+var column *bolt.Bucket
 
 // Database is the basis of all the systems
 type Database struct {
@@ -117,19 +120,23 @@ func findDBSKey(name string, bucketDB *bolt.Bucket) string {
 	return ""
 }
 
-func newDBSKey(name string, bucketDB *bolt.Bucket) string {
+func newKey(name string) []byte {
 	newKey := fourLetterGenerator()
 
-	matched := bucketDB.Get([]byte(newKey))
-
+	matched := key2name.Get([]byte(newKey))
+	// If it finds an existing value for the test key
+	// then it's not nil.  Keep on a trying!
 	keyExists := (matched != nil)
 	for keyExists {
 		newKey = fourLetterGenerator()
-		matched = bucketDB.Get([]byte(newKey))
+		matched = key2name.Get([]byte(newKey))
 		keyExists = (matched != nil)
 	}
 
-	return newKey
+	name2key.Put([]byte("dbs:"+name), []byte(newKey))
+	key2name.Put([]byte(newKey), []byte(name))
+
+	return []byte(newKey)
 }
 
 func main() {
@@ -162,41 +169,37 @@ func main() {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 
-		tx.DeleteBucket([]byte(databaseName))
-
-		log.Println("Opening the bucket")
-
-		bucketDB, err := tx.CreateBucketIfNotExists([]byte("DBS"))
+		key2name, err = tx.CreateBucketIfNotExists([]byte("key2name"))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
+		}
+
+		name2key, err = tx.CreateBucketIfNotExists([]byte("name2key"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+
+		dbsKey := name2key.Get([]byte("dbs:" + databaseName))
+		if dbsKey == nil {
+			dbsKey = newKey(databaseName)
+		}
+
+		tableName := entries[0].Table
+		tblKey := name2key.Get([]byte("tbl:" + tableName))
+		if tblKey == nil {
+			tblKey = newKey(tableName)
+		}
+
+		columnName := entries[0].Column
+		colKey := name2key.Get([]byte("col:" + columnName))
+		if colKey == nil {
+			colKey = newKey(columnName)
 		}
 
 		log.Println("Datbase name is ", databaseName)
-		dbKey := findDBSKey(databaseName, bucketDB)
-		if dbKey == "" {
-			dbKey = newDBSKey(databaseName, bucketDB)
-		}
-
-		log.Println("DB Key is ", dbKey)
-		b, err := tx.CreateBucket([]byte(databaseName))
-		if err != nil {
-			log.Println(err)
-			return fmt.Errorf("create bucket: %s", err)
-		}
-
-		for _, entry := range entries {
-			entry.ID, _ = b.NextSequence()
-			log.Println(entry.ID)
-			encoded, err := json.Marshal(entry)
-			if err != nil {
-				return err
-			}
-
-			err = b.Put([]byte(entry.UID()), encoded)
-			if err != nil {
-				return fmt.Errorf("create bucket: %s", err)
-			}
-		}
+		log.Println("Database key is", string(dbsKey))
+		log.Println("Table key is", string(tblKey))
+		log.Println("Column key is", string(colKey))
 
 		return nil
 	})
