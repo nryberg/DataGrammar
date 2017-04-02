@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -133,7 +134,7 @@ func newKey(name string) []byte {
 		keyExists = (matched != nil)
 	}
 
-	name2key.Put([]byte("dbs:"+name), []byte(newKey))
+	name2key.Put([]byte(name), []byte(newKey))
 	key2name.Put([]byte(newKey), []byte(name))
 
 	return []byte(newKey)
@@ -162,7 +163,6 @@ func main() {
 	}
 	defer db.Close()
 	log.Println("ready to load")
-	databaseName := entries[0].Database
 
 	err = db.Update(func(tx *bolt.Tx) error {
 		if err != nil {
@@ -179,28 +179,50 @@ func main() {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 
-		dbsKey := name2key.Get([]byte("dbs:" + databaseName))
-		if dbsKey == nil {
-			dbsKey = newKey(databaseName)
+		column, err = tx.CreateBucketIfNotExists([]byte("column"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
 		}
 
-		tableName := entries[0].Table
-		tblKey := name2key.Get([]byte("tbl:" + tableName))
-		if tblKey == nil {
-			tblKey = newKey(tableName)
+		for _, entry := range entries {
+			databaseName := entry.Database
+			dbsKey := name2key.Get([]byte("dbs:" + databaseName))
+			if dbsKey == nil {
+				dbsKey = newKey("dbs:" + databaseName)
+			}
+
+			tableName := entry.Table
+			tblKey := name2key.Get([]byte("tbl:" + tableName))
+			if tblKey == nil {
+				tblKey = newKey("tbl:" + tableName)
+			}
+
+			columnName := entry.Column
+			colKey := name2key.Get([]byte("col:" + columnName))
+			if colKey == nil {
+				colKey = newKey("col:" + columnName)
+			}
+
+			encoded, err := json.Marshal(entry)
+			if err != nil {
+				return err
+			}
+
+			entryKey := dbsKey
+			entryKey = append(entryKey, tblKey...)
+			entryKey = append(entryKey, colKey...)
+
+			err = column.Put(entryKey, encoded)
+			if err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
+
+			log.Println("Datbase name is ", databaseName)
+			log.Println("Database key is", string(dbsKey))
+			log.Println("Table key is", string(tblKey))
+			log.Println("Column key is", string(colKey))
+
 		}
-
-		columnName := entries[0].Column
-		colKey := name2key.Get([]byte("col:" + columnName))
-		if colKey == nil {
-			colKey = newKey(columnName)
-		}
-
-		log.Println("Datbase name is ", databaseName)
-		log.Println("Database key is", string(dbsKey))
-		log.Println("Table key is", string(tblKey))
-		log.Println("Column key is", string(colKey))
-
 		return nil
 	})
 
