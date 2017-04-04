@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/alecthomas/template"
 	"github.com/boltdb/bolt"
@@ -14,12 +16,16 @@ import (
 
 const dbFilePath string = "datagrammar.db"
 
-var boltDBinstance bolt.DB
+var name2key *bolt.Bucket
+var key2name *bolt.Bucket
+var column *bolt.Bucket
+
+var boltDBinstance *bolt.DB
 var database Database
 
-// BucketList contains a list of the buckets
-type BucketList struct {
-	Buckets []string
+// DatabaseList contains a list of the databases
+type DatabaseList struct {
+	Databases map[string]string
 }
 
 // Database contains a list of schemas
@@ -96,63 +102,12 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 	ID        uint64
 }
 
-func openDB(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Println(err)
-		return err
-	}
-
-	boltDBinstance, err := bolt.Open(path, 0600, nil)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer boltDBinstance.Close()
-	return err
-}
-
-// Buckets loads a list of all buckets.
-func Buckets() (BucketList, error) {
-	var bucketList BucketList
-	boltDBinstance, err := bolt.Open(dbFilePath, 0600, nil)
-	if err != nil {
-		fmt.Println(err)
-		return bucketList, err
-	}
-	defer boltDBinstance.Close()
-	if err != nil {
-		fmt.Println(err)
-		return bucketList, err
-	}
-	err = boltDBinstance.View(func(tx *bolt.Tx) error {
-		return tx.ForEach(func(name []byte, _ *bolt.Bucket) error {
-			bucketList.Buckets = append(bucketList.Buckets, string(name))
-			return nil
-		})
-	})
-
-	return bucketList, err
-}
-
-// buildDBtree converts majorKeys to a tree of entries
-func buildDBtree() error {
-	var err error
-	return err
-}
-
 //loadEntries will pull the tables in a bucket
 func loadEntries(bucket string) (Database, error) {
 	var entry Entry
 	database := NewDatabase(bucket)
 
-	boltDBinstance, err := bolt.Open(dbFilePath, 0600, nil)
-	if err != nil {
-		fmt.Println(err, "open Bolt DB")
-	}
-
-	defer boltDBinstance.Close()
-
-	err = boltDBinstance.View(func(tx *bolt.Tx) error {
+	err := boltDBinstance.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
@@ -160,7 +115,7 @@ func loadEntries(bucket string) (Database, error) {
 			// Load the entry from binary
 			jsonErr := json.Unmarshal(v, &entry)
 			if jsonErr != nil {
-				fmt.Println(err, "unMarshalling")
+				fmt.Println(jsonErr, "unMarshalling")
 			}
 			// Load em up cowboy
 			table, exists := database.Tables[entry.Table]
@@ -191,7 +146,7 @@ func loadEntries(bucket string) (Database, error) {
 	})
 
 	if err != nil {
-		fmt.Println(err, "loadEntries")
+		log.Println(err, "loadEntries")
 	}
 
 	return *database, err
@@ -200,14 +155,29 @@ func loadEntries(bucket string) (Database, error) {
 // Templates setup
 
 func listDBhandler(w http.ResponseWriter, r *http.Request) {
-	bucketList, err := Buckets()
+	var databaseList DatabaseList
+	databaseList.Databases = make(map[string]string)
+	err := boltDBinstance.View(func(tx *bolt.Tx) error {
+		names := tx.Bucket([]byte("name2key")).Cursor()
+		prefix := []byte("dbs:")
+		for k, v := names.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = names.Next() {
+			key := strings.Split(string(k), ":")[1]
+			value := string(v)
+			log.Println("Key:", key)
+			log.Println("Value:", value)
+
+			databaseList.Databases[key] = value
+			fmt.Printf("key=%s, value=%s\n", k, v)
+		}
+		return nil
+	})
 	if err != nil {
-		fmt.Println(err, "listDBHandler")
+		log.Println(err, "loadEntries")
 	}
 
 	templates := template.Must(template.ParseFiles("templates/databases.html", "templates/header.html", "templates/footer.html"))
 
-	err = templates.Execute(w, bucketList)
+	err = templates.Execute(w, databaseList)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -234,7 +204,6 @@ func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }
 
 func singleColhandler(w http.ResponseWriter, r *http.Request) {
@@ -242,7 +211,7 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 
 	columnName := r.URL.Path[len("/cl/"):]
 	log.Println(columnName)
-	column := database.Tables["fred"].Columns[columnName]
+	column := database.Tables["fred"].Columns[2]
 
 	err := templates.Execute(w, column)
 	if err != nil {
@@ -250,6 +219,7 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
 func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
 	dbName := r.URL.Path[len("/db/"):]
@@ -266,6 +236,17 @@ func singleDBhandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var err error
+	if _, err = os.Stat(dbFilePath); os.IsNotExist(err) {
+		fmt.Println(err)
+	}
+
+	boltDBinstance, err = bolt.Open(dbFilePath, 0600, nil)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer boltDBinstance.Close()
 
 	http.HandleFunc("/", listDBhandler)
 

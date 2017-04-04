@@ -2,9 +2,9 @@
 
 <h1>Databases</h1>
 
-{{range .Buckets}}
+{{range $key, $value := .Databases}}
   <div>
-    <a href="/db/{{.}}">{{.}}</a>
+    <a href="/db/{{$value}}">{{$key}}</a>
   </div>
 {{end}}
 
