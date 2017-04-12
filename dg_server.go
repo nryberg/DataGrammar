@@ -28,6 +28,11 @@ type DatabaseList struct {
 	Databases map[string]string
 }
 
+// TableList contains a list of the tables
+type TableList struct {
+	Tables map[string]string
+}
+
 // Database contains a list of schemas
 type Database struct {
 	Name       string
@@ -220,19 +225,27 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func singleDBhandler(w http.ResponseWriter, r *http.Request) {
+func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
-	dbName := r.URL.Path[len("/db/"):]
-	database, _ = loadEntries(dbName)
+	dbsKey := r.URL.Path[len("/db/"):]
 
-	for k := range database.Tables {
-		database.TableNames = append(database.TableNames, k)
+	var tableList TableList
+	tableList.Tables = make(map[string]string)
+	err := boltDBinstance.View(func(tx *bolt.Tx) error {
+		columns := tx.Bucket([]byte("key2name")).Cursor()
+		prefix := []byte(dbsKey)
+		log.Println("Db Key: ", dbsKey)
+		for k, v := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = columns.Next() {
+			log.Println("Key : ", string(k))
+			log.Println("Value :", string(v))
+
+		}
+		return nil
+	})
+	if err != nil {
+		log.Println(err, "loadEntries")
 	}
-
-	sort.Strings(database.TableNames)
-
 	templates.Execute(w, database)
-
 }
 
 func main() {
@@ -251,7 +264,7 @@ func main() {
 	http.HandleFunc("/", listDBhandler)
 
 	http.HandleFunc("/cl/", singleColhandler)
-	http.HandleFunc("/db/", singleDBhandler)
+	http.HandleFunc("/db/", singleDBShandler)
 	http.HandleFunc("/tb/", singleTBhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.ListenAndServe(":3001", nil)
