@@ -30,7 +30,8 @@ type DatabaseList struct {
 
 // TableList contains a list of the tables
 type TableList struct {
-	Tables map[string]string
+	Tables       map[string]string
+	DatabaseName string
 }
 
 // Database contains a list of schemas
@@ -107,6 +108,17 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 	ID        uint64
 }
 
+func fetchNameFromKey(key string) string {
+	var Name string
+	boltDBinstance.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("key2name"))
+		Name = string(b.Get([]byte(key)))
+
+		return nil
+	})
+	return Name[4:len(Name)]
+}
+
 //loadEntries will pull the tables in a bucket
 func loadEntries(bucket string) (Database, error) {
 	var entry Entry
@@ -158,7 +170,6 @@ func loadEntries(bucket string) (Database, error) {
 }
 
 // Templates setup
-
 func listDBhandler(w http.ResponseWriter, r *http.Request) {
 	var databaseList DatabaseList
 	databaseList.Databases = make(map[string]string)
@@ -191,7 +202,7 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleTable.html", "templates/header.html", "templates/footer.html"))
 
-	tableName := r.URL.Path[len("/tb/"):]
+	tableName := r.URL.Path[len("/tbl/"):]
 	table := database.Tables[tableName]
 
 	var columnName []string
@@ -227,25 +238,26 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 
 func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
-	dbsKey := r.URL.Path[len("/db/"):]
-
+	dbsKey := r.URL.Path[len("/dbs/"):]
 	var tableList TableList
+	tableList.DatabaseName = fetchNameFromKey(dbsKey)
 	tableList.Tables = make(map[string]string)
 	err := boltDBinstance.View(func(tx *bolt.Tx) error {
-		columns := tx.Bucket([]byte("key2name")).Cursor()
+		columns := tx.Bucket([]byte("column")).Cursor()
 		prefix := []byte(dbsKey)
 		log.Println("Db Key: ", dbsKey)
-		for k, v := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = columns.Next() {
-			log.Println("Key : ", string(k))
-			log.Println("Value :", string(v))
-
+		for k, _ := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = columns.Next() {
+			tableKey := string(k)[4:8]
+			tableName := fetchNameFromKey(tableKey)
+			tableList.Tables[tableName] = tableKey
 		}
 		return nil
 	})
 	if err != nil {
 		log.Println(err, "loadEntries")
 	}
-	templates.Execute(w, database)
+	log.Println("Table Count:", len(tableList.Tables))
+	templates.Execute(w, tableList)
 }
 
 func main() {
@@ -264,8 +276,8 @@ func main() {
 	http.HandleFunc("/", listDBhandler)
 
 	http.HandleFunc("/cl/", singleColhandler)
-	http.HandleFunc("/db/", singleDBShandler)
-	http.HandleFunc("/tb/", singleTBhandler)
+	http.HandleFunc("/dbs/", singleDBShandler)
+	http.HandleFunc("/tbl/", singleTBhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.ListenAndServe(":3001", nil)
 }
