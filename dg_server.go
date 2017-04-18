@@ -32,6 +32,16 @@ type DatabaseList struct {
 type TableList struct {
 	Tables       map[string]string
 	DatabaseName string
+	DatabaseKey  string
+}
+
+// ColumnList contains a table's worth of columns
+type ColumnList struct {
+	Columns      map[string]string
+	DatabaseName string
+	DatabaseKey  string
+	TableName    string
+	TableKey     string
 }
 
 // Database contains a list of schemas
@@ -202,10 +212,10 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleTable.html", "templates/header.html", "templates/footer.html"))
 
-	tableName := r.URL.Path[len("/tbl/"):]
-	table := database.Tables[tableName]
-
-	var columnName []string
+	var columnList ColumnList
+	tableKey := r.URL.Path[len("/tbl/"):]
+	columnList.TableKey = tableKey
+	columnList.TableName = fetchNameFromKey(tableKey)
 
 	for k := range table.Columns {
 		thisName := table.Columns[k].Name
@@ -222,20 +232,6 @@ func singleTBhandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func singleColhandler(w http.ResponseWriter, r *http.Request) {
-	templates := template.Must(template.ParseFiles("templates/singleColumn.html", "templates/header.html", "templates/footer.html"))
-
-	columnName := r.URL.Path[len("/cl/"):]
-	log.Println(columnName)
-	column := database.Tables["fred"].Columns[2]
-
-	err := templates.Execute(w, column)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-}
-
 func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleDatabase.html", "templates/header.html", "templates/footer.html"))
 	dbsKey := r.URL.Path[len("/dbs/"):]
@@ -249,7 +245,8 @@ func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 		for k, _ := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = columns.Next() {
 			tableKey := string(k)[4:8]
 			tableName := fetchNameFromKey(tableKey)
-			tableList.Tables[tableName] = tableKey
+			tableList.Tables[tableName] = append(dbsKey, tableKey...)
+
 		}
 		return nil
 	})
@@ -258,6 +255,20 @@ func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Table Count:", len(tableList.Tables))
 	templates.Execute(w, tableList)
+}
+
+func singleColhandler(w http.ResponseWriter, r *http.Request) {
+	templates := template.Must(template.ParseFiles("templates/singleColumn.html", "templates/header.html", "templates/footer.html"))
+
+	columnName := r.URL.Path[len("/cl/"):]
+	log.Println(columnName)
+	column := database.Tables["fred"].Columns[2]
+
+	err := templates.Execute(w, column)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 }
 
 func main() {

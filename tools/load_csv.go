@@ -121,23 +121,24 @@ func findDBSKey(name string, bucketDB *bolt.Bucket) string {
 	return ""
 }
 
-func newKey(name string) []byte {
+func newKey(name string, prefix string) []byte {
 	newKey := fourLetterGenerator()
-
-	matched := key2name.Get([]byte(newKey))
+	totalKey := prefix + newKey
+	matched := key2name.Get([]byte(totalKey))
 	// If it finds an existing value for the test key
 	// then it's not nil.  Keep on a trying!
 	keyExists := (matched != nil)
 	for keyExists {
 		newKey = fourLetterGenerator()
-		matched = key2name.Get([]byte(newKey))
+		totalKey := prefix + newKey
+		matched = key2name.Get([]byte(totalKey))
 		keyExists = (matched != nil)
 	}
 
-	name2key.Put([]byte(name), []byte(newKey))
-	key2name.Put([]byte(newKey), []byte(name))
+	name2key.Put([]byte(name), []byte(totalKey))
+	key2name.Put([]byte(totalKey), []byte(name))
 
-	return []byte(newKey)
+	return []byte(totalKey)
 }
 
 func main() {
@@ -188,19 +189,19 @@ func main() {
 			databaseName := entry.Database
 			dbsKey := name2key.Get([]byte("dbs:" + databaseName))
 			if dbsKey == nil {
-				dbsKey = newKey("dbs:" + databaseName)
+				dbsKey = newKey("dbs:"+databaseName, "")
 			}
 
 			tableName := entry.Table
 			tblKey := name2key.Get([]byte("tbl:" + tableName))
 			if tblKey == nil {
-				tblKey = newKey("tbl:" + tableName)
+				tblKey = newKey("tbl:"+tableName, string(dbsKey))
 			}
 
 			columnName := entry.Column
 			colKey := name2key.Get([]byte("col:" + columnName))
 			if colKey == nil {
-				colKey = newKey("col:" + columnName)
+				colKey = newKey("col:"+columnName, string(tblKey))
 			}
 
 			encoded, err := json.Marshal(entry)
