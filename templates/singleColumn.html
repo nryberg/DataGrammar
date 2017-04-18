@@ -3,7 +3,7 @@
 <h1>Single Column</h1>
 <h2>{{.Name}}</h2>
 
-<p> <a href="/db/{{.DatabaseName}}">{{.DatabaseName}}</a></p>
-<p> <a href="/db/{{.TableName}}">{{.DatabaseName}}</a></p>
+<p> <a href="/dbs/{{.DatabaseKey}}">Database : {{.DatabaseName}}</a></p>
+<p> <a href="/tbl/{{.TableKey}}">Table : {{.TableName}}</a></p>
 
 {{ template "footer.html" . }}

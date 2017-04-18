@@ -100,21 +100,23 @@ type Column struct {
 	Scale        int
 	TableName    string
 	DatabaseName string
+	TableKey     string
+	DatabaseKey  string
 }
 
-// Entry is the single database entry
+// Entry is a single line of a database/table definition
 type Entry struct { // Our example struct, you can use "-" to ignore a field
-	Database  string
-	System    string
-	Schema    string
-	Table     string
-	Column    string
-	Ordinal   int
-	Type      string
-	Length    int
-	Precision int
-	Scale     int
-	ID        uint64
+	Database  string `csv:"database"`
+	System    string `csv:"system"`
+	Schema    string `csv:"schema"`
+	Table     string `csv:"table"`
+	Column    string `csv:"column"`
+	Ordinal   int    `csv:"Ordinal"`
+	Type      string `csv:"Type"`
+	Length    int    `csv:"Length"`
+	Precision int    `csv:"Precision"`
+	Scale     int    `csv:"Scale"`
+	Key       string
 }
 
 func fetchNameFromKey(key string) string {
@@ -126,56 +128,6 @@ func fetchNameFromKey(key string) string {
 		return nil
 	})
 	return Name[4:len(Name)]
-}
-
-//loadEntries will pull the tables in a bucket
-func loadEntries(bucket string) (Database, error) {
-	var entry Entry
-	database := NewDatabase(bucket)
-
-	err := boltDBinstance.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucket))
-		cursor := bucket.Cursor()
-		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-
-			// Load the entry from binary
-			jsonErr := json.Unmarshal(v, &entry)
-			if jsonErr != nil {
-				fmt.Println(jsonErr, "unMarshalling")
-			}
-			// Load em up cowboy
-			table, exists := database.Tables[entry.Table]
-
-			var column Column
-
-			column.Name = entry.Column
-			column.Type = entry.Type
-			column.Ordinal = entry.Ordinal
-			column.Length = entry.Length
-			column.Precision = entry.Precision
-			column.Scale = entry.Scale
-			column.TableName = table.Name
-			column.DatabaseName = database.Name
-			column.ID = entry.ID
-
-			fmt.Println(column.ID)
-			if !exists {
-				table = NewTable(entry.Table, entry.Schema, database.Name)
-
-			}
-			table.Columns[column.ID] = column
-
-			database.Tables[entry.Table] = table
-
-		}
-		return nil
-	})
-
-	if err != nil {
-		log.Println(err, "loadEntries")
-	}
-
-	return *database, err
 }
 
 // Templates setup
@@ -231,6 +183,9 @@ func singleTBLhandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
+	if err != nil {
+		log.Println("Error:", err)
+	}
 	err = templates.Execute(w, columnList)
 	if err != nil {
 		fmt.Println(err)
@@ -264,11 +219,27 @@ func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 
 func singleColhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleColumn.html", "templates/header.html", "templates/footer.html"))
+	var column Column
+	var entry Entry
+	columnKey := r.URL.Path[len("/col/"):]
+	boltDBinstance.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("column"))
 
-	columnName := r.URL.Path[len("/cl/"):]
-	log.Println(columnName)
-	column := database.Tables["fred"].Columns[2]
-
+		encoded := b.Get([]byte(columnKey))
+		log.Println(string(encoded))
+		errUnmarshal := json.Unmarshal(encoded, &entry)
+		if errUnmarshal != nil {
+			log.Println("Unmarshalling error:", errUnmarshal)
+		}
+		column.Name = entry.Column
+		column.Length = entry.Length
+		column.DatabaseName = fetchNameFromKey(columnKey[:4])
+		column.DatabaseKey = columnKey[:4]
+		column.TableName = fetchNameFromKey(columnKey[:8])
+		column.TableKey = columnKey[:8]
+		return nil
+	})
+	log.Println("Column Name:", entry.Column)
 	err := templates.Execute(w, column)
 	if err != nil {
 		fmt.Println(err)

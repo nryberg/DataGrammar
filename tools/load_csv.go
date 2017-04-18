@@ -88,12 +88,7 @@ type Entry struct { // Our example struct, you can use "-" to ignore a field
 	Length    int    `csv:"Length"`
 	Precision int    `csv:"Precision"`
 	Scale     int    `csv:"Scale"`
-	ID        uint64
-}
-
-// UID returns a unique identifier for the entry
-func (e *Entry) UID() string {
-	return e.System + "|" + e.Schema + "|" + e.Table + "|" + e.Column
+	Key       string
 }
 
 // fourLetterGenerator creates a randomly string of four characters, upper and lower
@@ -130,7 +125,7 @@ func newKey(name string, prefix string) []byte {
 	keyExists := (matched != nil)
 	for keyExists {
 		newKey = fourLetterGenerator()
-		totalKey := prefix + newKey
+		totalKey = prefix + newKey
 		matched = key2name.Get([]byte(totalKey))
 		keyExists = (matched != nil)
 	}
@@ -204,24 +199,19 @@ func main() {
 				colKey = newKey("col:"+columnName, string(tblKey))
 			}
 
+			entry.Key = string(colKey)
+
 			encoded, err := json.Marshal(entry)
 			if err != nil {
 				return err
 			}
 
-			entryKey := dbsKey
-			entryKey = append(entryKey, tblKey...)
-			entryKey = append(entryKey, colKey...)
+			log.Println("Column Key:", string(entry.Key), ", Column Name:", entry.Column)
 
-			err = column.Put(entryKey, encoded)
+			err = column.Put(colKey, encoded)
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
 			}
-
-			log.Println("Datbase name is ", databaseName)
-			log.Println("Database key is", string(dbsKey))
-			log.Println("Table key is", string(tblKey))
-			log.Println("Column key is", string(colKey))
 
 		}
 		return nil
