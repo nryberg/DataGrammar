@@ -210,7 +210,7 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 
 func singleTBLhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleTable.html", "templates/header.html", "templates/footer.html"))
-
+	var err error
 	var columnList ColumnList
 	// var columnName []string
 	tableKey := r.URL.Path[len("/tbl/"):]
@@ -218,8 +218,20 @@ func singleTBLhandler(w http.ResponseWriter, r *http.Request) {
 	columnList.TableName = fetchNameFromKey(tableKey)
 	columnList.DatabaseKey = tableKey[:4]
 	columnList.DatabaseName = fetchNameFromKey(tableKey[:4])
-
-	err := templates.Execute(w, columnList)
+	columnList.Columns = make(map[string]string)
+	err = boltDBinstance.View(func(tx *bolt.Tx) error {
+		columns := tx.Bucket([]byte("key2name")).Cursor()
+		prefix := []byte(tableKey)
+		for k, _ := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = columns.Next() {
+			if len(string(k)) == 12 {
+				columnKey := string(k)
+				columnName := fetchNameFromKey(columnKey)
+				columnList.Columns[columnName] = columnKey
+			}
+		}
+		return nil
+	})
+	err = templates.Execute(w, columnList)
 	if err != nil {
 		fmt.Println(err)
 	}
