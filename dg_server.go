@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/alecthomas/template"
@@ -209,24 +208,18 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func singleTBhandler(w http.ResponseWriter, r *http.Request) {
+func singleTBLhandler(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/singleTable.html", "templates/header.html", "templates/footer.html"))
 
 	var columnList ColumnList
+	// var columnName []string
 	tableKey := r.URL.Path[len("/tbl/"):]
 	columnList.TableKey = tableKey
 	columnList.TableName = fetchNameFromKey(tableKey)
+	columnList.DatabaseKey = tableKey[:4]
+	columnList.DatabaseName = fetchNameFromKey(tableKey[:4])
 
-	for k := range table.Columns {
-		thisName := table.Columns[k].Name
-		columnName = append(columnName, thisName)
-
-	}
-
-	sort.Strings(columnName)
-	table.ColumnNames = columnName
-
-	err := templates.Execute(w, table)
+	err := templates.Execute(w, columnList)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -239,14 +232,14 @@ func singleDBShandler(w http.ResponseWriter, r *http.Request) {
 	tableList.DatabaseName = fetchNameFromKey(dbsKey)
 	tableList.Tables = make(map[string]string)
 	err := boltDBinstance.View(func(tx *bolt.Tx) error {
-		columns := tx.Bucket([]byte("column")).Cursor()
+		columns := tx.Bucket([]byte("key2name")).Cursor()
 		prefix := []byte(dbsKey)
-		log.Println("Db Key: ", dbsKey)
 		for k, _ := columns.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = columns.Next() {
-			tableKey := string(k)[4:8]
-			tableName := fetchNameFromKey(tableKey)
-			tableList.Tables[tableName] = append(dbsKey, tableKey...)
-
+			if len(string(k)) == 8 {
+				tableKey := string(k)
+				tableName := fetchNameFromKey(tableKey)
+				tableList.Tables[tableName] = tableKey
+			}
 		}
 		return nil
 	})
@@ -288,7 +281,7 @@ func main() {
 
 	http.HandleFunc("/cl/", singleColhandler)
 	http.HandleFunc("/dbs/", singleDBShandler)
-	http.HandleFunc("/tbl/", singleTBhandler)
+	http.HandleFunc("/tbl/", singleTBLhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.ListenAndServe(":3001", nil)
 }
