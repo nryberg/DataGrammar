@@ -78,16 +78,17 @@ type Column struct {
 
 // Entry is a single line of a database/table definition
 type Entry struct { // Our example struct, you can use "-" to ignore a field
+	Server    string `csv:"server"`
 	Database  string `csv:"database"`
 	System    string `csv:"system"`
 	Schema    string `csv:"schema"`
 	Table     string `csv:"table"`
 	Column    string `csv:"column"`
-	Ordinal   int    `csv:"Ordinal"`
-	Type      string `csv:"Type"`
-	Length    int    `csv:"Length"`
-	Precision int    `csv:"Precision"`
-	Scale     int    `csv:"Scale"`
+	Ordinal   int    `csv:"ordinal"`
+	Type      string `csv:"type"`
+	Length    int    `csv:"length"`
+	Precision int    `csv:"precision"`
+	Scale     int    `csv:"scale"`
 	Key       string
 }
 
@@ -202,6 +203,7 @@ func main() {
 			entry.Key = string(colKey)
 
 			encoded, err := json.Marshal(entry)
+			log.Println("Test Encode: ", string(encoded))
 			if err != nil {
 				return err
 			}
