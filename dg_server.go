@@ -231,12 +231,15 @@ func singleColhandler(w http.ResponseWriter, r *http.Request) {
 		if errUnmarshal != nil {
 			log.Println("Unmarshalling error:", errUnmarshal)
 		}
+
+		log.Println("Entry:", entry)
 		column.Name = entry.Column
 		column.Length = entry.Length
 		column.DatabaseName = fetchNameFromKey(columnKey[:4])
 		column.DatabaseKey = columnKey[:4]
 		column.TableName = fetchNameFromKey(columnKey[:8])
 		column.TableKey = columnKey[:8]
+		column.Type = entry.Type
 		return nil
 	})
 	log.Println("Column Name:", entry.Column)
