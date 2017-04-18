@@ -1,13 +1,16 @@
 {{ template "header.html" . }}
 
 <h1>Single Table</h1>
-<h2>{{.Name}}</h2>
+<h2>{{.TableName}}</h2>
 <p> {{len .Columns}}</p>
 
-<p> <a href="/db/{{.DatabaseName}}">{{.DatabaseName}}</a></p>
-{{range .Columns}}
+<p> <a href="/dbs/{{.DatabaseKey}}">Database : {{.DatabaseName}}</a></p>
+<p> <a href="/tbl/{{.TableKey}}">Table : {{.TableName}}</a></p>
+
+
+{{range $key, $value := .Columns}}
   <div>
-    <a href="/cl/{{.ID}}">{{.Name}}</a>
+    <a href="/col/{{$value}}">{{$key}}</a>
   </div>
 {{end}}
 

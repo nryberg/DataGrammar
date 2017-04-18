@@ -291,7 +291,7 @@ func main() {
 
 	http.HandleFunc("/", listDBhandler)
 
-	http.HandleFunc("/cl/", singleColhandler)
+	http.HandleFunc("/col/", singleColhandler)
 	http.HandleFunc("/dbs/", singleDBShandler)
 	http.HandleFunc("/tbl/", singleTBLhandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
