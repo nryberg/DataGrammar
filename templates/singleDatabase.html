@@ -1,12 +1,52 @@
 {{ template "header.html" . }}
+<div class="row">
+  <div class="col-sm-1"></div>
+  <div class="col">
+    <h2>
+      {{.DatabaseName}}
+    </h2>
 
-<h1>Single Database</h1>
-<h2>{{.DatabaseName}}</h2>
-
-{{range $key, $value := .Tables}}
-  <div>
-    <a href="/tbl/{{$value}}">{{$key}}</a>
   </div>
-{{end}}
+
+<div class="row">
+  <div class="col-sm-1">
+
+  </div>
+  <div class="col">
+
+    <h3>
+      <img src="/static/images/table.png" height="40">
+      Tables
+    </h3>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-1"></div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {{range $key, $value := .Tables}}
+          <tr>
+            <td><a href="/tbl/{{$value}}">{{$key}}</a></td>
+            <td> </td>
+          </tr>
+        {{end}}
+    </tbody>
+    </table>
+  </div>
+</div>
+
+  <div>
+
+  </div>
+
 
 {{ template "footer.html" . }}
