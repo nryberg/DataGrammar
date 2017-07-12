@@ -140,11 +140,9 @@ func listDBhandler(w http.ResponseWriter, r *http.Request) {
 		for k, v := names.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = names.Next() {
 			key := strings.Split(string(k), ":")[1]
 			value := string(v)
-			log.Println("Key:", key)
-			log.Println("Value:", value)
 
 			databaseList.Databases[key] = value
-			fmt.Printf("key=%s, value=%s\n", k, v)
+
 		}
 		return nil
 	})
