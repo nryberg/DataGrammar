@@ -5,24 +5,32 @@
     <h1 class="display-4">Data Field Guide</h1>
   </div>
   <div class="col-sm-1" >
-    <img src="/static/images/field_guide.png" alt="Database Icon" height="60">
+    <img src="/static/images/field_guide.png" alt="Data Field Guide Icon" height="60">
   </div>
 </div>
 
 <hr/>
 
-<div class="row">
+<div class="row" >
   <div class="col-sm-1"></div>
-  <div class="col-sm-1" >
-    <img src="/static/images/database.png" alt="Database Icon" height="60">
+  <div class="col-sm-2">
+    <h3 class="display-4">Databases</h3>
   </div>
-  <h3 class="display-4">Databases</h3>
+</div>
+<div class="row">
+  <div class="col-sm-2"></div>
+  <div class="col-sm-1">
+    <img src="/static/images/database.png" alt="Database Icon" height="40">
+  </div>
+
+  <div class="col-sm-2">
     <table>
         <tbody>
           {{range $key, $value := .Databases}}
             <tr>
               <td>
-                <a href="/dbs/{{$value}}">{{$key}}</a>
+                <h4 class="display-4"><a href="/dbs/{{$value}}">{{$key}}</a></h4>
+
               </td>
             </tr>
           {{end}}
