@@ -9,7 +9,8 @@ SELECT 'localhost' as server, -- replace as needed
       data_type as type,
       character_maximum_length as length,
       numeric_precision as precision,
-      numeric_scale as scale
+      numeric_scale as scale,
+      current_date as run_date
 
 FROM  information_schema.columns
 WHERE table_schema = 'public'

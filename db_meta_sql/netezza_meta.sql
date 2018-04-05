@@ -6,6 +6,7 @@
         ORDINAL_POSITION as Ordinal,
         TYPE_NAME as Type,
         COLUMN_SIZE as Length,
+        COLUMN_SIZE as Precision,
         DECIMAL_DIGITS AS Scale,
         CURRENT_DATE as Run_Date
 FROM TABLE_COLS 
